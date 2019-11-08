@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
         else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-q") == 0) {
             int field = strtol(argv[i++], &checkIsNumber, 10);
             if (*checkIsNumber == 0) {  
-                printf("No field given for coach %d, gonna use the first field...\n", coachesToMake + 1);
+                printf("Coordinator: No field given for coach %d, gonna use the first field...\n", coachesToMake + 1);
                 field = 1;
             }
 
@@ -38,10 +38,24 @@ int main(int argc, char** argv) {
     }
 
     if(inputFile == NULL) {
-        fprintf(stderr, "No input file given, nothing to do.\n");
+        fprintf(stderr, "Coordinator: Bert watches in horror as Ernie didn't give an input file.\n");
         return 1;
     }
 
-    printf("Coaches to make: %d\n", coachesToMake);
+    if(checkInputFileExists(inputFile) == false) {
+        fprintf(stderr, "Coordinator: WHERE IS THE FILE LEBOWSKI?\n");
+        return 1;
+    }
+
+    printf("Coordinator: Coaches to make: %d\n", coachesToMake);
+
+    unsigned int numOfRecords = getNumberOfRecords(inputFile);
+
+    for(int i = 0; i < coachesToMake; i++) {
+        coachData currectCoach = coaches[i];
+        
+    }
+
+    free(inputFile);
     return 0;
 }

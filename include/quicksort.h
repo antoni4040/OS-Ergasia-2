@@ -2,6 +2,9 @@
 Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 */
 
+#ifndef ERGASIA_2_QUICKSORT_H
+#define ERGASIA_2_QUICKSORT_H
+
 #include <stdlib.h>
 #include <time.h> 
 
@@ -11,13 +14,15 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 Using the CLRS implementation of quicksort. Just for convenience,
 I made a struct to hold both the items to sort and the compare function.
 */
-struct qSortItems {
+typedef struct {
     void** items;
     unsigned int size;
     int (*compare)(void* itemA, void* itemB);
-} typedef qSortItems;
+} qSortItems;
 
 unsigned int    partition(qSortItems* items, unsigned int pivot, unsigned int right);
 unsigned int    randomizedPartition(qSortItems* items, unsigned int pivot, unsigned int right);
 void            quicksortRecurse(qSortItems* items, unsigned int pivot, unsigned int right);
 void            quicksort(qSortItems* items);
+
+#endif //ERGASIA_2_HEAPSORT_H

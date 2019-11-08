@@ -9,7 +9,7 @@ Partition given portion to items smaller and greater than the pivot.
 */
 unsigned int partition(qSortItems* items, unsigned int pivot, unsigned int right) {
     void** pivotElement = items->items[right];
-    long int below = pivot - 1; //Can't be unsigned, it becomes -1 for the first iteration.
+    long below = pivot - 1; //Can't be unsigned, it becomes -1 for the first iteration.
     for(unsigned int above = pivot; above <= right - 1; above++) {
         if(items->compare(items->items[above], pivotElement) <= 0) {
             below += 1;

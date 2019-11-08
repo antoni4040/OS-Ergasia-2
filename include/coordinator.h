@@ -9,11 +9,13 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 #include <string.h>
 #include <stdlib.h>
 
+#include "files.h"
+
 #define HEAP_SORT  0
 #define QUICK_SORT 1
 #define MAX_FIELD_NUMBER 8
 
-typedef struct coachData {
+typedef struct {
     int sortType: 1;
     int field:    4;
 } coachData;
