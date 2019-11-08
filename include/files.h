@@ -24,7 +24,8 @@ typedef struct{
 	float  	amount;
 } Record;
 
-bool            checkInputFileExists(char* filename);
+bool            checkFileExists(char* filename);
 unsigned int    getNumberOfRecords(char* filename);
+void** 			getItems(char* inputFile, unsigned int start, unsigned int end);
 
 #endif //ERGASIA_2_FILES_H

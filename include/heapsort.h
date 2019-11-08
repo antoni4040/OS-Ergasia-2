@@ -15,6 +15,11 @@ and length(size will change during heapsort). I've also added
 a function pointer to a compare function has to return a negative if
 itemA < itemB, a positive if itemA > itemB and 0 if itemA = itemB.
 */
+
+#include <string.h>
+#include <stdlib.h>
+#include "files.h"
+
 typedef struct {
     void** items;
     unsigned int size;

@@ -51,3 +51,17 @@ void heapsort(heap* givenHeap) {
         maxHeapify(givenHeap, 0);
     }
 }
+
+/*
+Get input file and sort from given start to finish(including both start and finish).
+*/
+int main(int argc, char** argv) {
+    char* fileName;
+    unsigned int start;
+    unsigned int end;
+
+    fileName = malloc(strlen(argv[1]) * sizeof(char) + 1);
+    strcpy(fileName, argv[1]);
+    start = strtoul(argv[2], NULL, 10);
+    end = strtoul(argv[3], NULL, 10);
+}

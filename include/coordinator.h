@@ -8,6 +8,9 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h> 
 
 #include "files.h"
 

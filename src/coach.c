@@ -10,6 +10,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    printf("New coach created!\n");
+
     /*
     Get input file, number of records, coach ID(0, 1, 2, 3), sort algorithm
     and sort field from coordinator(parameters).
@@ -33,6 +35,15 @@ int main(int argc, char** argv) {
     {
         case 0:
             numberOfSorters = 1;
+            unsigned int start = 0;
+            unsigned int end = numOfRecords-1;
+            char startStr[UINT_STR_SIZE];
+            char endStr[UINT_STR_SIZE];
+            sprintf(startStr, "%u", start);
+            sprintf(endStr, "%u", end);
+            if(fork() == 0) 
+                execlp("./sorter", "./sorter", inputFile, startStr, endStr);
+            wait(NULL);
             break;
         case 1:
             numberOfSorters = 2;

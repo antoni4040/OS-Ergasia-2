@@ -26,11 +26,28 @@ unsigned int getNumberOfRecords(char* filename) {
         return 0;
     }
 
-    fseek (openFile , 0 , SEEK_END);
+    fseek(openFile, 0, SEEK_END);
     long dataSize = ftell(openFile);
     rewind(openFile);
     unsigned int numOfrecords = (unsigned int)dataSize/sizeof(Record);
 
     fclose(openFile);
     return numOfrecords;
+}
+
+/*
+Get records from input file and make an array.
+*/
+void** getItems(char* inputFile, unsigned int start, unsigned int end) {
+    void** items = malloc(sizeof(void*) * (end-start+1)); //+1 for the end record
+    unsigned int itemsCount = (end-start+1) * sizeof(Record);
+    FILE* openFile = fopen(inputFile, "rb");
+    fseek(openFile, start, SEEK_SET);
+    for(unsigned int i = 0; i < itemsCount; i++) {
+        Record* record = malloc(sizeof(Record));
+        fread(record, sizeof(Record), 1, openFile);
+        items[i] = (void*)record;
+    }
+    fclose(openFile);
+    return items;
 }
