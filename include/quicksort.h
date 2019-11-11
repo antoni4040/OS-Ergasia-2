@@ -7,22 +7,16 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 
 #include <stdlib.h>
 #include <time.h> 
-
-#define SWAP(a, b) do {void* x = a; a = b; b = x;} while(0) //Neat trick, wanted to use it for some time...
+#include "files.h"
 
 /*
 Using the CLRS implementation of quicksort. Just for convenience,
-I made a struct to hold both the items to sort and the compare function.
+I made a struct to hold both the records to sort and the size.
 */
-typedef struct {
-    void** items;
-    unsigned int size;
-    int (*compare)(void* itemA, void* itemB);
-} qSortItems;
 
-unsigned int    partition(qSortItems* items, unsigned int pivot, unsigned int right);
-unsigned int    randomizedPartition(qSortItems* items, unsigned int pivot, unsigned int right);
-void            quicksortRecurse(qSortItems* items, unsigned int pivot, unsigned int right);
-void            quicksort(qSortItems* items);
+int     partition(Record** records, int pivot, int right, unsigned int sortField);
+int     randomizedPartition(Record** records, int pivot, int right, unsigned int sortField);
+void    quicksortRecurse(Record** records, int pivot, int right, unsigned int sortField);
+void    quicksort(Record** records, unsigned int size, unsigned int sortField);
 
 #endif //ERGASIA_2_HEAPSORT_H

@@ -5,27 +5,29 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 #include "heapsort.h"
 
 /*
-For a given index in the heap, make sure the item in
+For a given index in the record heap, make sure the record in
 index maintains the heap property.
 */
-void maxHeapify(heap* givenHeap, unsigned int index) {
-    void** items = givenHeap->items;
-    int (*compare)(void* itemA, void* itemB) = givenHeap->compare;
+void maxHeapify(recordHeap* givenHeap, unsigned int index) {
+    Record** records = givenHeap->records;
+    unsigned int sortField = givenHeap->sortField;
     
     unsigned int left = LEFT(index);
     unsigned int right = RIGHT(index);
     unsigned int largest;
     
-    if(left <= givenHeap->size && compare(items[left], items[right]) > 0) 
+    if(left < givenHeap->size && compareRecords(
+        records[left], records[index], sortField) > 0) 
         largest = left;
     else
         largest = index;
     
-    if(right <= givenHeap->size && compare(items[right], items[largest]) > 0)
+    if(right < givenHeap->size && compareRecords(
+        records[right], records[largest], sortField) > 0)
         largest = right;
     
     if(largest != index) {
-        SWAP(items[index], items[largest]);
+        SWAP(records[index], records[largest]);
         maxHeapify(givenHeap, largest);
     }
 }
@@ -33,20 +35,20 @@ void maxHeapify(heap* givenHeap, unsigned int index) {
 /*
 From a random array, build a max-heap.
 */
-void buildMaxHeap(heap* givenHeap) {
-    unsigned int middle = givenHeap->length / 2;
-    for(unsigned int i = middle; i >= 0; i--) {
+void buildMaxHeap(recordHeap* givenHeap) {
+    int middle = givenHeap->length / 2;
+    for(int i = middle - 1; i >= 0; i--) {
         maxHeapify(givenHeap, i);
     }
 }
 
 /*
-Use buildMaxHeap and maxHeapify or sort an array of items.
+Use buildMaxHeap and maxHeapify or sort an array of records.
 */
-void heapsort(heap* givenHeap) {
+void heapsort(recordHeap* givenHeap) {
     buildMaxHeap(givenHeap);
     for(unsigned int i = givenHeap->length - 1; i >= 1; i--) {
-        SWAP(givenHeap->items[0], givenHeap->items[i]);
+        SWAP(givenHeap->records[0], givenHeap->records[i]);
         givenHeap->size -= 1;
         maxHeapify(givenHeap, 0);
     }
@@ -59,9 +61,27 @@ int main(int argc, char** argv) {
     char* fileName;
     unsigned int start;
     unsigned int end;
+    unsigned int sortField;
+    char* fifoFile;
 
     fileName = malloc(strlen(argv[1]) * sizeof(char) + 1);
     strcpy(fileName, argv[1]);
     start = strtoul(argv[2], NULL, 10);
     end = strtoul(argv[3], NULL, 10);
+    sortField = strtoul(argv[4], NULL, 10);
+    fifoFile = malloc(strlen(argv[5]) * sizeof(char) + 1);
+    strcpy(fifoFile, argv[5]);
+    
+    recordHeap* newHeap = malloc(sizeof(recordHeap));
+    newHeap->records = getRecords(fileName, start, end);
+    newHeap->length = end - start + 1;
+    newHeap->size = newHeap->length;
+    newHeap->sortField = sortField;
+
+    heapsort(newHeap);
+
+    for(int i = 0; i < newHeap->length; i++) {
+        printRecord(newHeap->records[i]);
+    }
+    return 0;
 }

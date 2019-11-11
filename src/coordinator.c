@@ -28,13 +28,12 @@ int main(int argc, char** argv) {
                 printf("Coordinator: No field given for coach %d, gonna use the first field...\n", coachesToMake + 1);
                 field = 1;
             }
-            i++;
-
             coachData newCoach;
             newCoach.sortType = strcmp(argv[i], "-h") == 0 ? HEAP_SORT : QUICK_SORT;
             newCoach.field = field;
             coaches[coachesToMake] = newCoach;
             coachesToMake++;
+            i++;
         }
     }
 
@@ -72,7 +71,7 @@ int main(int argc, char** argv) {
         printf("%s %s %s %s %d\n", inputFile, numOfRecordsStr, coachIDStr, sortAlgorithmStr, currectCoach.field);
                 
         if(fork() == 0) {
-            execlp("./coach", "./coach.c", inputFile, numOfRecordsStr, coachIDStr, sortAlgorithmStr,
+            execlp("./coach", "./coach", inputFile, numOfRecordsStr, coachIDStr, sortAlgorithmStr,
                 sortFieldStr, (char*) NULL);
         }
     }

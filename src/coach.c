@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    printf("New coach created!\n");
+    printf("Coach: New coach created!\n");
 
     /*
     Get input file, number of records, coach ID(0, 1, 2, 3), sort algorithm
@@ -19,15 +19,17 @@ int main(int argc, char** argv) {
     char* inputFile;
     unsigned int numOfRecords;
     int coachID;
-    char sortAlgorithm;
+    char* sortAlgorithm;
     char* sortField;
     inputFile = malloc(strlen(argv[1]) * sizeof(char) + 1);
     strcpy(inputFile, argv[1]);
     numOfRecords = strtoul(argv[2], NULL, 10);
     coachID = atoi(argv[3]);
-    sortAlgorithm = argv[4][0];
+    sortAlgorithm = argv[4];
     sortField = malloc(strlen(argv[5]) * sizeof(char) + 1);
-    strcpy(inputFile, argv[5]);
+    strcpy(sortField, argv[5]);
+
+    recordFIFO* fifos[8];
 
     // Create appropriate number of sorters:
     int numberOfSorters;
@@ -35,15 +37,31 @@ int main(int argc, char** argv) {
     {
         case 0:
             numberOfSorters = 1;
+            char* newFifoFile = createFIFO("coach", coachID, 1);
             unsigned int start = 0;
             unsigned int end = numOfRecords-1;
             char startStr[UINT_STR_SIZE];
             char endStr[UINT_STR_SIZE];
             sprintf(startStr, "%u", start);
             sprintf(endStr, "%u", end);
-            if(fork() == 0) 
-                execlp("./sorter", "./sorter", inputFile, startStr, endStr);
-            wait(NULL);
+            pid_t pid = fork();
+            if(pid == 0) 
+                execlp("./sorter", "./sorter", sortAlgorithm, inputFile, startStr, endStr,
+                sortField, newFifoFile, (char*) NULL);
+
+            // recordFIFO* newfifo = malloc(sizeof(recordFIFO));
+            // newfifo->size = numOfRecords;
+            // newfifo->fd = open(newFifoFile, O_RDONLY);
+            
+            // struct pollfd fdarray[1];
+            // fdarray[0].fd = newfifo->fd;
+            // fdarray[0].events = POLLIN;
+            // int pollTime = poll(fdarray, 1, 300);
+            // if(pollTime == 0) {
+            //     fprintf(stderr, "Coach: fifo timed out.\n");
+            //     exit(1);
+            // }
+            waitpid(pid, NULL, 0);
             break;
         case 1:
             numberOfSorters = 2;
@@ -58,6 +76,6 @@ int main(int argc, char** argv) {
             fprintf(stderr, "Coach: something's wrong with the coach ID.\n");
             return 1;
     }
-
+    printf("Coach: ready to die.\n");
     return 0;
 }
