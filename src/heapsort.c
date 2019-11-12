@@ -71,6 +71,8 @@ int main(int argc, char** argv) {
     sortField = strtoul(argv[4], NULL, 10);
     fifoFile = malloc(strlen(argv[5]) * sizeof(char) + 1);
     strcpy(fifoFile, argv[5]);
+
+    printf("%u %u\n", start, end);
     
     recordHeap* newHeap = malloc(sizeof(recordHeap));
     newHeap->records = getRecords(fileName, start, end);
@@ -80,8 +82,10 @@ int main(int argc, char** argv) {
 
     heapsort(newHeap);
 
+    int fifofd = open(fifoFile, O_WRONLY | O_NONBLOCK);
+
     for(int i = 0; i < newHeap->length; i++) {
-        printRecord(newHeap->records[i]);
+        write(fifofd, newHeap->records[i], sizeof(Record));
     }
     return 0;
 }

@@ -9,13 +9,18 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 #define RIGHT(i)    (2*i + 2)
 
 /*
-Based on the CLRS implementation that uses a separate size
-and length(size will change during heapsort). Was going for a generic
+Based on the CLRS implementation that uses a separate length
+and size(size will change during heapsort). Was going for a generic
 design with a compare function pointer, but with the added
 need for a field for sort it's really not worth it.
 */
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include "files.h"
 
 typedef struct {

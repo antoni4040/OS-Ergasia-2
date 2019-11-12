@@ -31,41 +31,26 @@ int main(int argc, char** argv) {
 
     recordFIFO* fifos[8];
 
+    // Create coach data to easily pass to each case:
+    coachData* coach = malloc(sizeof(coachData));
+    coach->coachID = coachID;
+    coach->inputFile = inputFile;
+    coach->numOfRecords = numOfRecords;
+    coach->sortAlgorithm = sortAlgorithm;
+    coach->sortField = sortField;
+
     // Create appropriate number of sorters:
     int numberOfSorters;
     switch (coachID)
     {
-        case 0:
-            numberOfSorters = 1;
-            char* newFifoFile = createFIFO("coach", coachID, 1);
-            unsigned int start = 0;
-            unsigned int end = numOfRecords-1;
-            char startStr[UINT_STR_SIZE];
-            char endStr[UINT_STR_SIZE];
-            sprintf(startStr, "%u", start);
-            sprintf(endStr, "%u", end);
-            pid_t pid = fork();
-            if(pid == 0) 
-                execlp("./sorter", "./sorter", sortAlgorithm, inputFile, startStr, endStr,
-                sortField, newFifoFile, (char*) NULL);
-
-            // recordFIFO* newfifo = malloc(sizeof(recordFIFO));
-            // newfifo->size = numOfRecords;
-            // newfifo->fd = open(newFifoFile, O_RDONLY);
-            
-            // struct pollfd fdarray[1];
-            // fdarray[0].fd = newfifo->fd;
-            // fdarray[0].events = POLLIN;
-            // int pollTime = poll(fdarray, 1, 300);
-            // if(pollTime == 0) {
-            //     fprintf(stderr, "Coach: fifo timed out.\n");
-            //     exit(1);
-            // }
-            waitpid(pid, NULL, 0);
+        case 0: {
+            caseOf1Sorter(coach);
             break;
-        case 1:
-            numberOfSorters = 2;
+        }
+        case 1: {
+            caseOf2Sorters(coach);
             break;
+        }
         case 2:
             numberOfSorters = 4;
             break;
@@ -78,4 +63,90 @@ int main(int argc, char** argv) {
     }
     printf("Coach: ready to die.\n");
     return 0;
+}
+
+/*
+Redirect here when the coach must create only one sorter.
+*/
+void caseOf1Sorter(coachData* coach) {
+    char* newFifoFile = createFIFO("coach", coach->coachID, 0);
+    unsigned int start = 0;
+    unsigned int end = coach->numOfRecords-1;
+    char startStr[UINT_STR_SIZE];
+    char endStr[UINT_STR_SIZE];
+    sprintf(startStr, "%u", start);
+    sprintf(endStr, "%u", end);
+    pid_t pid = fork();
+
+    // Child process:
+    if(pid == 0) 
+        execlp("./sorter", "./sorter", coach->sortAlgorithm, 
+        coach->inputFile, startStr, endStr,
+        coach->sortField, newFifoFile, (char*) NULL);
+
+    // Parent process:
+    recordFIFO* newfifo = malloc(sizeof(recordFIFO));
+    newfifo->size = coach->numOfRecords;
+    newfifo->fd = open(newFifoFile, O_RDONLY);
+
+    // Setup somewhere to put incoming records:
+    Record* records = malloc(sizeof(Record) * coach->numOfRecords);
+    int recordsInCoach = 0;
+    
+    // Setup select:
+    fd_set fds;
+    
+    FD_ZERO(&fds); 
+    FD_SET(newfifo->fd, &fds);
+    select(newfifo->fd + 1, &fds, NULL, NULL, NULL);
+
+    // If the fifo has data:
+    if (FD_ISSET(newfifo->fd, &fds)){
+        // Read all records from fifo:
+        while(recordsInCoach < coach->numOfRecords) {
+            Record record;
+            int result = read(newfifo->fd, &record, sizeof(Record));
+            if(result > 0) {
+                memcpy(&records[recordsInCoach], &record, sizeof(Record));
+                recordsInCoach++;
+            }
+        }
+    }
+
+    for(int i = 0; i < recordsInCoach; i++) {
+        printRecord(&records[i]);
+    }
+
+    int status;
+    wait(&status);
+    free(newfifo);
+}
+
+/*
+Redirect here when the coach must create two sorters.
+*/
+void caseOf2Sorters(coachData* coach) {
+    int numberOfSorters = 2; 
+    for(int sorter = 0; sorter < numberOfSorters; sorter++) {
+        char* newFifoFile = createFIFO("coach", coach->coachID, sorter);
+
+        // Create first sorter for first half:
+        unsigned int start = sorter * (coach->numOfRecords / 2);
+        unsigned int end = start + (coach->numOfRecords / 2) - 1;
+        char startStr[UINT_STR_SIZE];
+        char endStr[UINT_STR_SIZE];
+        sprintf(startStr, "%u", start);
+        sprintf(endStr, "%u", end);
+        pid_t pid = fork();
+        if(pid == 0) 
+            execlp("./sorter", "./sorter", coach->sortAlgorithm,
+            coach->inputFile, startStr, endStr,
+            coach->sortField, newFifoFile, (char*) NULL);
+        }
+
+    while (numberOfSorters > 0) {
+        int status;
+        wait(&status);
+        numberOfSorters--;
+    }
 }

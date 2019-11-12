@@ -42,7 +42,7 @@ Record** getRecords(char* inputFile, unsigned int start, unsigned int end) {
     Record** records = malloc(sizeof(Record*) * (end-start+1)); //+1 for the end record
     unsigned int recordsCount = end-start+1;
     FILE* openFile = fopen(inputFile, "rb");
-    fseek(openFile, start, SEEK_SET);
+    fseek(openFile, start*sizeof(Record), SEEK_SET);
     for(unsigned int i = 0; i < recordsCount; i++) {
         Record* record = malloc(sizeof(Record));
         fread(record, sizeof(Record), 1, openFile);
