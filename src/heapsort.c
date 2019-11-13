@@ -87,5 +87,15 @@ int main(int argc, char** argv) {
     for(int i = 0; i < newHeap->length; i++) {
         write(fifofd, newHeap->records[i], sizeof(Record));
     }
+
+    // Free allocated memory:
+    for(int i = 0; i < newHeap->length; i++) {
+        free(newHeap->records[i]);
+    }
+    free(newHeap->records);
+    free(newHeap);
+    free(fileName);
+    free(fifoFile);
+    close(fifofd);
     return 0;
 }

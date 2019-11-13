@@ -118,13 +118,19 @@ void caseOf1Sorter(coachData* coach) {
         }
     }
 
-    // for(int i = 0; i < recordsInCoach; i++) {
-    //     printRecord(records[i]);
-    // }
+    //Write records to text file in ASCII:
+    writeRecords(coach->inputFile, records, coach->numOfRecords, coach->sortField);
 
+    // Wait for child process to finish:
     int status;
     wait(&status);
     free(newfifo);
+
+    // Free allocated memory for records:
+    for(int i = 0; i < coach->numOfRecords; i++) {
+        free(records[i]);
+    }
+    free(records);
 }
 
 /*

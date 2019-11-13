@@ -79,7 +79,6 @@ int main(int argc, char** argv) {
     pid_t pid;
     int status;
     while((pid=wait(&status)) > 0);   //Wait for all child processes to finish.
-
     free(inputFile);
     return 0;
 }

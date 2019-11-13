@@ -12,24 +12,30 @@ OUT3	=	sorter
 OUT4	=	heapsort
 OUT5	=	quicksort
 CC      =	gcc
-FLAGS   =       -Wall   -g      -c  -std=c99 	-I$(INC_DIR)	-D_XOPEN_SOURCE=700
+FLAGS   =       -Wall   -c  -std=c99 	-I$(INC_DIR)	-D_XOPEN_SOURCE=700
+
+debug:      FLAGS    += -g
+release:    FLAGS    += -O3
 
 all: $(OUT1) $(OUT2) $(OUT3) $(OUT4) $(OUT5) 
 
+debug:      all
+release:    all
+
 $(OUT1): $(OBJS1)
-	$(CC)   -g  -lm    $(OBJS1) -o    $@
+	$(CC)   -lm    $(OBJS1) -o    $@
 
 $(OUT2): $(OBJS2)
-	$(CC)   -g  -lm    $(OBJS2) -o    $@
+	$(CC)   -lm    $(OBJS2) -o    $@
 
 $(OUT3): $(OBJS3)
-	$(CC)   -g  -lm    $(OBJS3) -o    $@
+	$(CC)   -lm    $(OBJS3) -o    $@
 
 $(OUT4): $(OBJS4)
-	$(CC)   -g  -lm    $(OBJS4) -o    $@
+	$(CC)   -lm    $(OBJS4) -o    $@
 
 $(OUT5): $(OBJS5)
-	$(CC)   -g  -lm    $(OBJS5) -o    $@
+	$(CC)   -lm    $(OBJS5) -o    $@
 
 coordinator.o: ./src/coordinator.c
 	$(CC)   $(FLAGS)        ./src/coordinator.c

@@ -53,6 +53,24 @@ Record** getRecords(char* inputFile, unsigned int start, unsigned int end) {
 }
 
 /*
+Write given records to file in ASCII, not binary, for some reason...
+*/
+void writeRecords(char* inputFile, Record** records, unsigned int recordsCount, char* sortField) {
+    char* inputFileWithPostfix = malloc(strlen(inputFile) + strlen(sortField) + 1);
+    strcpy(inputFileWithPostfix, inputFile);
+    strcat(inputFileWithPostfix, sortField);
+    FILE* openFile = fopen(inputFileWithPostfix, "w");
+    for(unsigned int i = 0; i < recordsCount; i++) {
+        Record* record = records[i];
+        fprintf(openFile, "%ld %s %s %s %d %s %s %f\n", record->custid,
+        record->FirstName, record->LastName, record->Street, record->HouseID,
+        record->City, record->postcode, record->amount);
+    }
+    fclose(openFile);
+    free(inputFileWithPostfix);
+}
+
+/*
 Create a fifo for the coach-sorter relationship.
 */
 char* createFIFO(char* name, int coachID, int numberOfSorters) {

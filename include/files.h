@@ -31,6 +31,7 @@ typedef struct{
 bool            checkFileExists(char* filename);
 unsigned int    getNumberOfRecords(char* filename);
 Record** 		getRecords(char* inputFile, unsigned int start, unsigned int end);
+void 			writeRecords(char* inputFile, Record** records, unsigned int recordsCount, char* sortField);
 char* 			createFIFO(char* name, int coachID, int numberOfSorters);
 int 			compareRecords(Record* recordA, Record* recordB, unsigned int field);
 void 			printRecord(Record* record);
