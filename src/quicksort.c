@@ -71,8 +71,19 @@ int main(int argc, char** argv) {
 
     quicksort(records, end-start+1, sortField);
 
+    int fifofd = open(fifoFile, O_WRONLY);
+
     for(int i = 0; i < end-start+1; i++) {
-        printRecord(records[i]);
+        write(fifofd, records[i], sizeof(Record));
     }
+
+    // Free allocated memory:
+    for(int i = 0; i < end-start+1; i++) {
+        free(records[i]);
+    }
+    free(records);
+    free(fileName);
+    free(fifoFile);
+    close(fifofd);
     return 0;
 }

@@ -131,3 +131,31 @@ void printRecord(Record* record) {
         record->FirstName, record->LastName, record->Street,
         record->HouseID, record->City, record->postcode, record->amount);
 }
+
+/*
+Merge two sorted records arrays using the given sort field.
+*/
+Record** mergeRecords(Record** recordsLeft, Record** recordsRight, int countLeft, int countRight, int sortField) {
+    Record** records = malloc(sizeof(Record*) * (countLeft+countRight));
+    int left = 0;
+    int right = 0;
+    while(left < countLeft && right < countRight) {
+        if(compareRecords(recordsLeft[left], recordsRight[right], sortField) < 0) {
+            records[left+right] = recordsLeft[left];
+            left++;
+        }
+        else {
+            records[left+right] = recordsRight[right];
+            right++;
+        }
+    }
+    while(left < countLeft) {
+        records[left+right] = recordsLeft[left];
+        left++;
+    }
+    while(right < countRight) {
+        records[left+right] = recordsRight[right];
+        right++;
+    }
+    return records;
+}

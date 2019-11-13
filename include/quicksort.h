@@ -7,6 +7,10 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 
 #include <stdlib.h>
 #include <time.h> 
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "files.h"
 
 /*
