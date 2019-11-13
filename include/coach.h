@@ -37,6 +37,6 @@ typedef struct {
 } recordFIFO;
 
 void caseOf1Sorter(coachData* coach);
-void caseOf2Sorters(coachData* coach);
+void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* portions);
 
 #endif //ERGASIA_2_COACH_H  

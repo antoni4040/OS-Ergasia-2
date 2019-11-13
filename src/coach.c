@@ -29,8 +29,6 @@ int main(int argc, char** argv) {
     sortField = malloc(strlen(argv[5]) * sizeof(char) + 1);
     strcpy(sortField, argv[5]);
 
-    recordFIFO* fifos[8];
-
     // Create coach data to easily pass to each case:
     coachData* coach = malloc(sizeof(coachData));
     coach->coachID = coachID;
@@ -40,7 +38,6 @@ int main(int argc, char** argv) {
     coach->sortField = sortField;
 
     // Create appropriate number of sorters:
-    int numberOfSorters;
     switch (coachID)
     {
         case 0: {
@@ -48,15 +45,20 @@ int main(int argc, char** argv) {
             break;
         }
         case 1: {
-            caseOf2Sorters(coach);
+            int portions[2] = {1, 1};
+            caseOfNSorters(coach, 2, 2, portions);
             break;
         }
-        case 2:
-            numberOfSorters = 4;
+        case 2: {
+            int portions[4] = {1, 1, 2, 4};
+            caseOfNSorters(coach, 4, 8, portions);
             break;
-        case 3:
-            numberOfSorters = 8;
+        }
+        case 3: {
+            int portions[8] = {1, 1, 1, 1, 2, 2, 4, 4};
+            caseOfNSorters(coach, 4, 16, portions);
             break;    
+        }
         default:
             fprintf(stderr, "Coach: something's wrong with the coach ID.\n");
             return 1;
@@ -79,10 +81,11 @@ void caseOf1Sorter(coachData* coach) {
     pid_t pid = fork();
 
     // Child process:
-    if(pid == 0) 
+    if(pid == 0) {
         execlp("./sorter", "./sorter", coach->sortAlgorithm, 
         coach->inputFile, startStr, endStr,
         coach->sortField, newFifoFile, (char*) NULL);
+    }
 
     // Parent process:
     recordFIFO* newfifo = malloc(sizeof(recordFIFO));
@@ -90,7 +93,7 @@ void caseOf1Sorter(coachData* coach) {
     newfifo->fd = open(newFifoFile, O_RDONLY);
 
     // Setup somewhere to put incoming records:
-    Record* records = malloc(sizeof(Record) * coach->numOfRecords);
+    Record** records = malloc(sizeof(Record*) * coach->numOfRecords);
     int recordsInCoach = 0;
     
     // Setup select:
@@ -104,18 +107,20 @@ void caseOf1Sorter(coachData* coach) {
     if (FD_ISSET(newfifo->fd, &fds)){
         // Read all records from fifo:
         while(recordsInCoach < coach->numOfRecords) {
-            Record record;
-            int result = read(newfifo->fd, &record, sizeof(Record));
+            Record* record = malloc(sizeof(Record));
+            int result = read(newfifo->fd, record, sizeof(Record));
             if(result > 0) {
-                memcpy(&records[recordsInCoach], &record, sizeof(Record));
+                records[recordsInCoach] = record;
                 recordsInCoach++;
             }
+            else 
+                free(record);
         }
     }
 
-    for(int i = 0; i < recordsInCoach; i++) {
-        printRecord(&records[i]);
-    }
+    // for(int i = 0; i < recordsInCoach; i++) {
+    //     printRecord(records[i]);
+    // }
 
     int status;
     wait(&status);
@@ -125,25 +130,92 @@ void caseOf1Sorter(coachData* coach) {
 /*
 Redirect here when the coach must create two sorters.
 */
-void caseOf2Sorters(coachData* coach) {
-    int numberOfSorters = 2; 
+void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* portions) {
+    recordFIFO* fifos[numberOfSorters];
+
+    // Setup somewhere to put incoming records:
+    Record** records[numberOfSorters];
+    int recordsInCoach[numberOfSorters];
+    int totalRecordsToWait[numberOfSorters];
+
+    int maxfd = 0;
+    unsigned int last = 0;
     for(int sorter = 0; sorter < numberOfSorters; sorter++) {
         char* newFifoFile = createFIFO("coach", coach->coachID, sorter);
 
         // Create first sorter for first half:
-        unsigned int start = sorter * (coach->numOfRecords / 2);
-        unsigned int end = start + (coach->numOfRecords / 2) - 1;
+        unsigned int start = last;
+        unsigned int end = start + (coach->numOfRecords / divider)*portions[sorter] - 1;
+        last = end + 1;
+        // Remaining records after divisions go to the last segment:
+        if(sorter == numberOfSorters - 1) 
+            end = coach->numOfRecords - 1;
         char startStr[UINT_STR_SIZE];
         char endStr[UINT_STR_SIZE];
         sprintf(startStr, "%u", start);
         sprintf(endStr, "%u", end);
         pid_t pid = fork();
-        if(pid == 0) 
+        if(pid == 0) {
             execlp("./sorter", "./sorter", coach->sortAlgorithm,
             coach->inputFile, startStr, endStr,
             coach->sortField, newFifoFile, (char*) NULL);
         }
+        
+        // Parent process:
+        recordFIFO* newfifo = malloc(sizeof(recordFIFO));
+        newfifo->size = coach->numOfRecords;
+        newfifo->fd = open(newFifoFile, O_RDONLY);
+        fifos[sorter] = newfifo;
 
+        maxfd = newfifo->fd > maxfd ? newfifo->fd : maxfd;
+
+        totalRecordsToWait[sorter] = end - start + 1;
+        records[sorter] = malloc(sizeof(Record*) * (end - start + 1));
+        recordsInCoach[sorter] = 0;
+    }
+
+    // Setup select:
+    fd_set fds;
+    
+    int sortersToReceive = numberOfSorters;
+    while(sortersToReceive > 0) {
+        FD_ZERO(&fds); 
+        for(int sorter = 0; sorter < numberOfSorters; sorter++) {
+            FD_SET(fifos[sorter]->fd, &fds);
+        }
+
+        select(maxfd + 1, &fds, NULL, NULL, NULL);
+
+        for(int sorter = 0; sorter < numberOfSorters; sorter++) {
+            // If the fifo has data:
+            if (FD_ISSET(fifos[sorter]->fd, &fds)){
+                // Read all records from fifo:
+                while(recordsInCoach[sorter] < totalRecordsToWait[sorter]) {
+                    Record* record = malloc(sizeof(Record));
+                    int result = read(fifos[sorter]->fd, record, sizeof(Record));
+                    if(result > 0) {
+                        records[sorter][recordsInCoach[sorter]] = record;
+                        recordsInCoach[sorter]++;
+                    }
+                    else {
+                        free(record);
+                        break;
+                    }
+                }
+                if(totalRecordsToWait[sorter] == recordsInCoach[sorter])
+                    sortersToReceive--;
+            }
+        }
+    }
+
+    for(int sorter = 0; sorter < numberOfSorters; sorter++) {
+        for(int i = 0; i < recordsInCoach[sorter]; i++) {
+            printRecord(records[sorter][i]);
+        }
+        printf("\n\n");
+    }
+
+    // Wait for children to finish:
     while (numberOfSorters > 0) {
         int status;
         wait(&status);

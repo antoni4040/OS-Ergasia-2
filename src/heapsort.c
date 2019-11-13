@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
 
     heapsort(newHeap);
 
-    int fifofd = open(fifoFile, O_WRONLY | O_NONBLOCK);
+    int fifofd = open(fifoFile, O_WRONLY);
 
     for(int i = 0; i < newHeap->length; i++) {
         write(fifofd, newHeap->records[i], sizeof(Record));
