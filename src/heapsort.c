@@ -71,8 +71,6 @@ int main(int argc, char** argv) {
     sortField = strtoul(argv[4], NULL, 10);
     fifoFile = malloc(strlen(argv[5]) * sizeof(char) + 1);
     strcpy(fifoFile, argv[5]);
-
-    printf("%u %u\n", start, end);
     
     recordHeap* newHeap = malloc(sizeof(recordHeap));
     newHeap->records = getRecords(fileName, start, end);
@@ -97,5 +95,8 @@ int main(int argc, char** argv) {
     free(fileName);
     free(fifoFile);
     close(fifofd);
+
+    // Send signal to coach:
+    kill(getppid(), SIGUSR2);
     return 0;
 }

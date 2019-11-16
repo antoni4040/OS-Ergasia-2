@@ -12,6 +12,8 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "files.h"
+#include <signal.h>
+
 
 /*
 Using the CLRS implementation of quicksort. Just for convenience,

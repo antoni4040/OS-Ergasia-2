@@ -4,13 +4,13 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 
 #include "coach.h"
 
+int signalsReceived = 0;
+
 int main(int argc, char** argv) {
     if(argc != 6) {
         fprintf(stderr, "Coach: something's wrong with the command line parameters.\n");
         return 1;
     }
-
-    printf("Coach: New coach created!\n");
 
     /*
     Get input file, number of records, coach ID(0, 1, 2, 3), sort algorithm
@@ -29,6 +29,8 @@ int main(int argc, char** argv) {
     sortField = malloc(strlen(argv[5]) * sizeof(char) + 1);
     strcpy(sortField, argv[5]);
 
+    printf("Coach %d: created!\n", coachID);
+
     // Create coach data to easily pass to each case:
     coachData* coach = malloc(sizeof(coachData));
     coach->coachID = coachID;
@@ -36,7 +38,10 @@ int main(int argc, char** argv) {
     coach->numOfRecords = numOfRecords;
     coach->sortAlgorithm = sortAlgorithm;
     coach->sortField = sortField;
+    coach->startTimes = malloc(sizeof(double) * numOfRecords);
+    coach->endTimes = malloc(sizeof(double) * numOfRecords);
 
+    signal(SIGUSR2, handleSignal);
     // Create appropriate number of sorters:
     switch (coachID)
     {
@@ -56,14 +61,18 @@ int main(int argc, char** argv) {
         }
         case 3: {
             int portions[8] = {1, 1, 1, 1, 2, 2, 4, 4};
-            caseOfNSorters(coach, 4, 16, portions);
+            caseOfNSorters(coach, 8, 16, portions);
             break;    
         }
         default:
             fprintf(stderr, "Coach: something's wrong with the coach ID.\n");
             return 1;
     }
-    printf("Coach: ready to die.\n");
+    free(coach->inputFile);
+    free(coach->startTimes);
+    free(coach->endTimes);
+    free(coach);
+    printf("Coach %d: ready to die. Signals: %d\n", coachID, signalsReceived);
     return 0;
 }
 
@@ -71,6 +80,7 @@ int main(int argc, char** argv) {
 Redirect here when the coach must create only one sorter.
 */
 void caseOf1Sorter(coachData* coach) {
+    signal(SIGUSR2, handleSignal);
     char* newFifoFile = createFIFO("coach", coach->coachID, 0);
     unsigned int start = 0;
     unsigned int end = coach->numOfRecords-1;
@@ -78,7 +88,11 @@ void caseOf1Sorter(coachData* coach) {
     char endStr[UINT_STR_SIZE];
     sprintf(startStr, "%u", start);
     sprintf(endStr, "%u", end);
+
     pid_t pid = fork();
+
+    struct tms computeTime;
+    coach->startTimes[0] = (double)times(&computeTime);
 
     // Child process:
     if(pid == 0) {
@@ -117,13 +131,19 @@ void caseOf1Sorter(coachData* coach) {
                 free(record);
         }
     }
-
-    //Write records to text file in ASCII:
-    writeRecords(coach->inputFile, records, coach->numOfRecords, coach->sortField);
-
+    
     // Wait for child process to finish:
     int status;
     wait(&status);
+
+    coach->endTimes[0] = (double)times(&computeTime);
+
+    printf("Coach %d: sorter 0: %lf\n", coach->coachID, (coach->endTimes[0]) - (coach->startTimes[0]));
+    //Write records to text file in ASCII:
+    writeRecords(coach->inputFile, records, coach->numOfRecords, coach->sortField);
+
+    remove(newFifoFile);
+    free(newFifoFile);
     free(newfifo);
 
     // Free allocated memory for records:
@@ -137,6 +157,7 @@ void caseOf1Sorter(coachData* coach) {
 Redirect here when the coach must create two sorters.
 */
 void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* portions) {
+    signal(SIGUSR2, handleSignal);
     recordFIFO* fifos[numberOfSorters];
 
     // Setup somewhere to put incoming records:
@@ -160,7 +181,9 @@ void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* por
         char endStr[UINT_STR_SIZE];
         sprintf(startStr, "%u", start);
         sprintf(endStr, "%u", end);
+        
         pid_t pid = fork();
+
         if(pid == 0) {
             execlp("./sorter", "./sorter", coach->sortAlgorithm,
             coach->inputFile, startStr, endStr,
@@ -171,6 +194,7 @@ void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* por
         recordFIFO* newfifo = malloc(sizeof(recordFIFO));
         newfifo->size = coach->numOfRecords;
         newfifo->fd = open(newFifoFile, O_RDONLY);
+        newfifo->filename = newFifoFile;
         fifos[sorter] = newfifo;
 
         maxfd = newfifo->fd > maxfd ? newfifo->fd : maxfd;
@@ -208,8 +232,9 @@ void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* por
                         break;
                     }
                 }
-                if(totalRecordsToWait[sorter] == recordsInSorter[sorter])
+                if(totalRecordsToWait[sorter] == recordsInSorter[sorter]) {
                     sortersToReceive--;
+                }
             }
         }
     }
@@ -227,10 +252,25 @@ void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* por
     // Write records to file:
     writeRecords(coach->inputFile, recordsMerged, recordsMergedCount, coach->sortField);
 
+    // Print time and delete fifos:
+    for(int i = 0; i < numberOfSorters; i++) {
+        printf("Coach %d: sorter %d: %lf\n", coach->coachID, i, (coach->endTimes[i]) - (coach->startTimes[i]));
+        remove(fifos[i]->filename);
+    }
+
     // Wait for children to finish:
     while (numberOfSorters > 0) {
         int status;
         wait(&status);
         numberOfSorters--;
     }
+}
+
+/*
+Handle the signal. This is not the right way to do things, but the exercise
+doesn't ask for anything more.
+*/
+void handleSignal(int signum) {
+    signal(SIGUSR2, handleSignal);
+    signalsReceived++;
 }

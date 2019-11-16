@@ -5,8 +5,6 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 #include "sorter.h"
 
 int main(int argc, char** argv) {
-
-    printf("Sorter: Sorter created for %s.\n", argv[1]);   
     /*
     The parameters are passed this way:
     first the type of sort(H or Q) and then the rest of the 

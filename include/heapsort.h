@@ -20,6 +20,9 @@ need for a field for sort it's really not worth it.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <sys/times.h>
+
 
 #include "files.h"
 

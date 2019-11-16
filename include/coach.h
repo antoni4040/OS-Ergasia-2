@@ -14,6 +14,8 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/select.h>
+#include <sys/times.h>
+#include <signal.h>
 
 #include "files.h" 
 
@@ -25,6 +27,8 @@ typedef struct {
     char* sortAlgorithm;
     char* sortField;
     unsigned int numOfRecords;
+    double* startTimes;
+    double* endTimes; //Not the apocalypse.
 } coachData;
 
 /*
@@ -32,11 +36,12 @@ A helping struct to manage the multiple fifos that pass data.
 */
 typedef struct {
     int fd;
+    char* filename;
     unsigned int size;
     void** records;
 } recordFIFO;
 
 void caseOf1Sorter(coachData* coach);
 void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* portions);
-
+void handleSignal(int signum);
 #endif //ERGASIA_2_COACH_H  

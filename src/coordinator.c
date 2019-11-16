@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
         char sortFieldStr[2];
         sprintf(sortFieldStr, "%d", currectCoach.field);
 
-        printf("%s %s %s %s %d\n", inputFile, numOfRecordsStr, coachIDStr, sortAlgorithmStr, currectCoach.field);
+        // printf("%s %s %s %s %d\n", inputFile, numOfRecordsStr, coachIDStr, sortAlgorithmStr, currectCoach.field);
                 
         if(fork() == 0) {
             execlp("./coach", "./coach", inputFile, numOfRecordsStr, coachIDStr, sortAlgorithmStr,

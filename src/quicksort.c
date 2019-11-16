@@ -85,5 +85,8 @@ int main(int argc, char** argv) {
     free(fileName);
     free(fifoFile);
     close(fifofd);
+    
+     // Send signal to coach:
+    kill(getppid(), SIGUSR2);
     return 0;
 }
