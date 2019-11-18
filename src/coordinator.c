@@ -10,6 +10,7 @@ int main(int argc, char** argv) {
     int coachesToMake = 0;
     coachData coaches[4];
     double durations[4];
+    int fields[4];
 
     struct tms calculateTime;
     double ticspersec = (double) sysconf(_SC_CLK_TCK);
@@ -29,6 +30,16 @@ int main(int argc, char** argv) {
         }
         else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-q") == 0) {
             int field = strtol(argv[i+1], &checkIsNumber, 10);
+            for(int j = 0; j < coachesToMake; j++) {
+                if(fields[j] == field) {
+                    i+= 2;
+                    field = -1;
+                    break;
+                }
+            }
+            if(field == -1) continue;
+
+            fields[coachesToMake] = field;
             if (*checkIsNumber != '\0') {  
                 printf("Coordinator: No field given for coach %d, gonna use the first field...\n", coachesToMake + 1);
                 field = 1;
