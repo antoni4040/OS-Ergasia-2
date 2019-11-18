@@ -38,4 +38,7 @@ int 			compareRecords(Record* recordA, Record* recordB, unsigned int field);
 void 			printRecord(Record* record);
 Record** 		mergeRecords(Record** recordsLeft, Record** recordsRight, 
 				int countLeft, int countRight, int sortField);
+double 			minDuration(double* durations, int count);
+double 			maxDuration(double* durations, int count);
+double 			averageDuration(double* durations, int count);
 #endif //ERGASIA_2_FILES_H

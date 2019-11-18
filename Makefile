@@ -1,23 +1,21 @@
 INC_DIR = 	./include
 OBJS1   =	coordinator.o files.o
 OBJS2 	=	coach.o	files.o
-OBJS3 	=	sorter.o
-OBJS4	= 	heapsort.o	files.o
-OBJS5	= 	quicksort.o	files.o
-SOURCE  =	./src/coordinator.c ./src/heapsort.c ./src/quicksort.c ./src/coach.c ./src/files.c ./src/sorter.c
-HEADER  =	./include/coordinator.h ./include/heapsort.h ./include/quicksort.h ./include/coach.h ./include/files.h ./include/sorter.h
+OBJS3	= 	heapsort.o	files.o
+OBJS4	= 	quicksort.o	files.o
+SOURCE  =	./src/coordinator.c ./src/heapsort.c ./src/quicksort.c ./src/coach.c ./src/files.c
+HEADER  =	./include/coordinator.h ./include/heapsort.h ./include/quicksort.h ./include/coach.h ./include/files.h
 OUT1    =	coordinator
 OUT2	=	coach
-OUT3	=	sorter
-OUT4	=	heapsort
-OUT5	=	quicksort
+OUT3	=	heapsort
+OUT4	=	quicksort
 CC      =	gcc
 FLAGS   =       -Wall   -c  -std=c99 	-I$(INC_DIR)	-D_XOPEN_SOURCE=700
 
 debug:      FLAGS    += -g
 release:    FLAGS    += -O3
 
-all: $(OUT1) $(OUT2) $(OUT3) $(OUT4) $(OUT5) 
+all: $(OUT1) $(OUT2) $(OUT3) $(OUT4)
 
 debug:      all
 release:    all
@@ -52,11 +50,8 @@ coach.o: ./src/coach.c
 files.o: ./src/files.c
 	$(CC)   $(FLAGS)        ./src/files.c
 
-sorter.o: ./src/sorter.c
-	$(CC)   $(FLAGS)        ./src/sorter.c
-
 clean:
-	rm -f $(OBJS1) $(OUT1) $(OBJS2) $(OUT2) $(OBJS3) $(OUT3) $(OBJS4) $(OUT4) $(OBJS5) $(OUT5) 
+	rm -f $(OBJS1) $(OUT1) $(OBJS2) $(OUT2) $(OBJS3) $(OUT3) $(OBJS4) $(OUT4)
 
 count:
 	wc $(SOURCE) $(HEADER)

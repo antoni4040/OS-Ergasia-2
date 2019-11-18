@@ -159,3 +159,41 @@ Record** mergeRecords(Record** recordsLeft, Record** recordsRight, int countLeft
     }
     return records;
 }
+
+/*
+Return minimum duration.
+*/
+double minDuration(double* durations, int count) {
+    double current = durations[0];
+    for(int i = 0; i < count; i++) {
+        if(durations[i] < current) {
+            current = durations[i];
+        }
+    }
+    return current;
+}
+
+/*
+Return maximum duration.
+*/
+double maxDuration(double* durations, int count) {
+    double current = durations[0];
+    for(int i = 0; i < count; i++) {
+        if(durations[i] > current) {
+            current = durations[i];
+        }
+    }
+    return current;
+}
+
+/*
+Return average duration.
+*/
+double averageDuration(double* durations, int count) {
+    double sum = 0;
+    for(int i = 0; i < count; i++) {
+        sum += durations[i];
+    }
+    sum /= count;
+    return sum;
+}

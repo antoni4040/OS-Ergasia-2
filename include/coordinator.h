@@ -10,7 +10,9 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/wait.h> 
+#include <sys/select.h>
+#include <sys/wait.h>
+#include <sys/times.h>
 #include <fcntl.h>
 
 #include "files.h"
@@ -24,6 +26,10 @@ typedef struct {
     int field:    4;
     char* fifo;
     int fifofd;
+    double minTime;
+    double maxTime;
+    double avgTime;
+    int signals;
 } coachData;
 
 #endif //ERGASIA_2_COORDINATOR_H

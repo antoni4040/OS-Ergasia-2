@@ -9,6 +9,11 @@ int main(int argc, char** argv) {
     char* checkIsNumber;
     int coachesToMake = 0;
     coachData coaches[4];
+    double durations[4];
+
+    struct tms calculateTime;
+    double ticspersec = (double) sysconf(_SC_CLK_TCK);
+    double startTime = (double)times(&calculateTime);
 
     if(argc == 1)   // Abort if no command line arguments given:
     {
@@ -55,9 +60,7 @@ int main(int argc, char** argv) {
         coachData currectCoach = coaches[i];
 
         char* newCoordinatorFifo = createFIFO("coordinator", 0, i);
-        currectCoach.fifo = newCoordinatorFifo;
-
-        currectCoach.fifofd = open(newCoordinatorFifo, O_RDONLY);
+        coaches[i].fifo = newCoordinatorFifo;
         
         // Pass input file, number of records, coach ID(0, 1, 2, 3),
         // sort algorithm, sort field and coordinator fifo.
@@ -82,6 +85,55 @@ int main(int argc, char** argv) {
                 sortFieldStr, newCoordinatorFifo, (char*) NULL);
         }
     }
+
+    // Open fifos:
+    int maxfd = 0;
+    for(int i = 0; i < coachesToMake; i++) {
+        coaches[i].fifofd = open(coaches[i].fifo, O_RDONLY);
+        maxfd = coaches[i].fifofd > maxfd ? coaches[i].fifofd : maxfd;
+    }
+
+    // Setup select:
+    fd_set fds;
+    int coachesToReceive = coachesToMake;
+    while(coachesToReceive > 0) {
+        FD_ZERO(&fds); 
+        for(int i = 0; i < coachesToMake; i++) {
+            FD_SET(coaches[i].fifofd, &fds);
+        }
+
+        select(maxfd + 1, &fds, NULL, NULL, NULL);
+
+        for(int coach = 0; coach < coachesToMake; coach++) {
+            // If the fifo has data:
+            if (FD_ISSET(coaches[coach].fifofd, &fds)) { 
+                read(coaches[coach].fifofd, &(coaches[coach].minTime), sizeof(double));
+                read(coaches[coach].fifofd, &(coaches[coach].maxTime), sizeof(double));
+                read(coaches[coach].fifofd, &(coaches[coach].avgTime), sizeof(double));
+                read(coaches[coach].fifofd, &(durations[coach]), sizeof(double));
+                read(coaches[coach].fifofd, &(coaches[coach].signals), sizeof(int));
+                coachesToReceive--;
+                close(coaches[coach].fifofd);
+            }
+        }
+    }
+
+    // Print sorters MIN, MAX, AVG times and signals received.
+    for(int i = 0; i < coachesToMake; i++) {
+        coachData coach = coaches[i];
+        printf("Coach %d: Sorter: MIN: %lf, MAX: %lf, AVG: %lf, SIGNALS: %d\n", i,
+            coach.minTime, coach.maxTime, coach.avgTime, coach.signals);
+        free(coach.fifo);
+    }
+
+    double min = minDuration(durations, coachesToMake);
+    double max = maxDuration(durations, coachesToMake);
+    double average = averageDuration(durations, coachesToMake); 
+    printf("Coordinator: MIN: %lf, MAX: %lf, AVG: %lf\n", min, max, average);
+
+    double endTime = (double)times(&calculateTime);
+    double duration = (endTime - startTime) / ticspersec;
+    printf("Coordinator: Turnaround Time: %lf\n", duration);
 
     pid_t pid;
     int status;

@@ -60,6 +60,7 @@ int main(int argc, char** argv) {
     char* fifoFile;
 
     struct tms calculateTime;
+    double ticspersec = (double) sysconf(_SC_CLK_TCK);
     double startTime = (double)times(&calculateTime);
 
     fileName = malloc(strlen(argv[1]) * sizeof(char) + 1);
@@ -87,7 +88,7 @@ int main(int argc, char** argv) {
 
      // Pass duration of sorter:
     double endTime = (double)times(&calculateTime);
-    double duration = endTime - startTime;
+    double duration = (endTime - startTime) / ticspersec;
     write(fifofd, &duration, sizeof(double));
 
     free(records);
