@@ -12,11 +12,6 @@ int main(int argc, char** argv) {
     sigemptyset(&action.sa_mask);
     action.sa_flags = 0;      
     sigaction(SIGUSR2, &action, NULL);
-
-    sigset_t signal_set;
-    sigemptyset(&signal_set);
-    sigaddset(&signal_set, SIGUSR2);
-    sigprocmask(SIG_BLOCK, &signal_set, NULL);
         
     if(argc != 7) {
         fprintf(stderr, "Coach: something's wrong with the command line parameters.\n");
@@ -93,8 +88,6 @@ int main(int argc, char** argv) {
             return 1;
     }
 
-    // sigprocmask(SIG_UNBLOCK, &signal_set, NULL);
-
     double min = minDuration(coach->durations, numOfSorters);
     double max = maxDuration(coach->durations, numOfSorters);
     double average = averageDuration(coach->durations, numOfSorters);
@@ -127,12 +120,20 @@ I managed to abstract it enough to only need one function to do the job.
 It's a mess though. Would refactor heavily in a production environment.
 */
 void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* portions) {
+    sigset_t signal_set;
+    sigemptyset(&signal_set);
+    sigaddset(&signal_set, SIGUSR2);
+
     recordFIFO* fifos[numberOfSorters];
 
     // Setup somewhere to put incoming records:
     Record** records[numberOfSorters];
     int recordsInSorter[numberOfSorters];
     int totalRecordsToWait[numberOfSorters];
+
+    // Need to mask this part cause for some God-damn fucking awful
+    // reason, SIGUSR2 breaks something if it's received.
+    sigprocmask(SIG_BLOCK, &signal_set, NULL);
 
     int maxfd = 0;
     unsigned int last = 0;
@@ -178,6 +179,8 @@ void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* por
         recordsInSorter[sorter] = 0;
     }
 
+    sigprocmask(SIG_UNBLOCK, &signal_set, NULL);
+
     
     int sortersToReceive = numberOfSorters;
     while(sortersToReceive > 0) {
@@ -207,7 +210,7 @@ void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* por
                     }
 
                     if(totalRecordsToWait[sorter] == recordsInSorter[sorter]) {
-                        read(fifos[sorter]->fd, &(coach->durations[sorter]), sizeof(double));
+                        while(read(fifos[sorter]->fd, &(coach->durations[sorter]), sizeof(double)));
                         sortersToReceive--;
                         close(fifos[sorter]->fd);
                     }

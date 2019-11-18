@@ -134,6 +134,7 @@ int main(int argc, char** argv) {
         coachData coach = coaches[i];
         printf("Coach %d: Sorter: MIN: %lf, MAX: %lf, AVG: %lf, SIGNALS: %d\n", i,
             coach.minTime, coach.maxTime, coach.avgTime, coach.signals);
+        remove(coach.fifo);
         free(coach.fifo);
     }
 
