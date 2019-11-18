@@ -11,6 +11,7 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h> 
+#include <fcntl.h>
 
 #include "files.h"
 
@@ -21,6 +22,8 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 typedef struct {
     int sortType: 1;
     int field:    4;
+    char* fifo;
+    int fifofd;
 } coachData;
 
 #endif //ERGASIA_2_COORDINATOR_H

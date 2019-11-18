@@ -71,16 +71,16 @@ void writeRecords(char* inputFile, Record** records, unsigned int recordsCount, 
 }
 
 /*
-Create a fifo for the coach-sorter relationship.
+Create a fifo for the coach-sorter and coach-coordinator relationship.
 */
-char* createFIFO(char* name, int coachID, int numberOfSorters) {
+char* createFIFO(char* name, int id, int numberOfSorters) {
     char* newName = malloc(strlen(name) + 20);
-    char coachIDStr[10];
+    char IDStr[10];
     char numberOfSortersStr[10];
-    sprintf(coachIDStr, "%d", coachID);
+    sprintf(IDStr, "%d", id);
     sprintf(numberOfSortersStr, "%d", numberOfSorters);
     strcpy(newName, name);
-    strcat(newName, coachIDStr);
+    strcat(newName, IDStr);
     strcat(newName, numberOfSortersStr);
 
     int retVal = mkfifo(newName, 0666);

@@ -53,9 +53,14 @@ int main(int argc, char** argv) {
 
     for(int i = 0; i < coachesToMake; i++) {
         coachData currectCoach = coaches[i];
+
+        char* newCoordinatorFifo = createFIFO("coordinator", 0, i);
+        currectCoach.fifo = newCoordinatorFifo;
+
+        currectCoach.fifofd = open(newCoordinatorFifo, O_RDONLY);
         
         // Pass input file, number of records, coach ID(0, 1, 2, 3),
-        // sort algorithm and sort field.
+        // sort algorithm, sort field and coordinator fifo.
         char numOfRecordsStr[10];
         sprintf(numOfRecordsStr, "%u", numOfRecords);
         char coachIDStr[2];
@@ -71,8 +76,10 @@ int main(int argc, char** argv) {
         // printf("%s %s %s %s %d\n", inputFile, numOfRecordsStr, coachIDStr, sortAlgorithmStr, currectCoach.field);
                 
         if(fork() == 0) {
-            execlp("./coach", "./coach", inputFile, numOfRecordsStr, coachIDStr, sortAlgorithmStr,
-                sortFieldStr, (char*) NULL);
+            execlp("./coach", "./coach",
+                inputFile, numOfRecordsStr, 
+                coachIDStr, sortAlgorithmStr,
+                sortFieldStr, newCoordinatorFifo, (char*) NULL);
         }
     }
 

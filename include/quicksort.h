@@ -13,7 +13,7 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 #include <fcntl.h>
 #include "files.h"
 #include <signal.h>
-
+#include <sys/times.h>
 
 /*
 Using the CLRS implementation of quicksort. Just for convenience,

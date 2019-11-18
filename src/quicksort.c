@@ -11,7 +11,7 @@ int partition(Record** records, int pivot, int right, unsigned int sortField) {
     Record* pivotElement = records[right];
     int below = pivot - 1;
     for(int above = pivot; above <= right - 1; above++) {
-        if(compareRecords(records[above], pivotElement, sortField) <= 0) {
+        if(compareRecords(records[above], pivotElement, sortField) < 0) {
             below += 1;
             SWAP(records[below], records[above]);
         }
@@ -59,6 +59,9 @@ int main(int argc, char** argv) {
     unsigned int sortField;
     char* fifoFile;
 
+    struct tms calculateTime;
+    double startTime = (double)times(&calculateTime);
+
     fileName = malloc(strlen(argv[1]) * sizeof(char) + 1);
     strcpy(fileName, argv[1]);
     start = strtoul(argv[2], NULL, 10);
@@ -81,6 +84,12 @@ int main(int argc, char** argv) {
     for(int i = 0; i < end-start+1; i++) {
         free(records[i]);
     }
+
+     // Pass duration of sorter:
+    double endTime = (double)times(&calculateTime);
+    double duration = endTime - startTime;
+    write(fifofd, &duration, sizeof(double));
+
     free(records);
     free(fileName);
     free(fifoFile);

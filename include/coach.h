@@ -27,8 +27,7 @@ typedef struct {
     char* sortAlgorithm;
     char* sortField;
     unsigned int numOfRecords;
-    double* startTimes;
-    double* endTimes; //Not the apocalypse.
+    double* durations;
 } coachData;
 
 /*

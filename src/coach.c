@@ -7,7 +7,7 @@ Created by Antonis Karvelas, sdi1600060. K22, Project 2.
 int signalsReceived = 0;
 
 int main(int argc, char** argv) {
-    if(argc != 6) {
+    if(argc != 7) {
         fprintf(stderr, "Coach: something's wrong with the command line parameters.\n");
         return 1;
     }
@@ -21,6 +21,7 @@ int main(int argc, char** argv) {
     int coachID;
     char* sortAlgorithm;
     char* sortField;
+    char* coordinatorFifo;
     inputFile = malloc(strlen(argv[1]) * sizeof(char) + 1);
     strcpy(inputFile, argv[1]);
     numOfRecords = strtoul(argv[2], NULL, 10);
@@ -28,8 +29,11 @@ int main(int argc, char** argv) {
     sortAlgorithm = argv[4];
     sortField = malloc(strlen(argv[5]) * sizeof(char) + 1);
     strcpy(sortField, argv[5]);
+    coordinatorFifo = malloc(strlen(argv[6]) * sizeof(char) + 1);
+    strcpy(coordinatorFifo, argv[6]);
 
     printf("Coach %d: created!\n", coachID);
+    printf("%s\n", coordinatorFifo);
 
     // Create coach data to easily pass to each case:
     coachData* coach = malloc(sizeof(coachData));
@@ -38,28 +42,30 @@ int main(int argc, char** argv) {
     coach->numOfRecords = numOfRecords;
     coach->sortAlgorithm = sortAlgorithm;
     coach->sortField = sortField;
-    coach->startTimes = malloc(sizeof(double) * numOfRecords);
-    coach->endTimes = malloc(sizeof(double) * numOfRecords);
 
     signal(SIGUSR2, handleSignal);
     // Create appropriate number of sorters:
     switch (coachID)
     {
         case 0: {
+            coach->durations = malloc(sizeof(double));
             caseOf1Sorter(coach);
             break;
         }
         case 1: {
+            coach->durations = malloc(sizeof(double) * 2);
             int portions[2] = {1, 1};
             caseOfNSorters(coach, 2, 2, portions);
             break;
         }
         case 2: {
+            coach->durations = malloc(sizeof(double) * 4);
             int portions[4] = {1, 1, 2, 4};
             caseOfNSorters(coach, 4, 8, portions);
             break;
         }
         case 3: {
+            coach->durations = malloc(sizeof(double) * 8);
             int portions[8] = {1, 1, 1, 1, 2, 2, 4, 4};
             caseOfNSorters(coach, 8, 16, portions);
             break;    
@@ -69,8 +75,7 @@ int main(int argc, char** argv) {
             return 1;
     }
     free(coach->inputFile);
-    free(coach->startTimes);
-    free(coach->endTimes);
+    free(coach->durations);
     free(coach);
     printf("Coach %d: ready to die. Signals: %d\n", coachID, signalsReceived);
     return 0;
@@ -90,9 +95,6 @@ void caseOf1Sorter(coachData* coach) {
     sprintf(endStr, "%u", end);
 
     pid_t pid = fork();
-
-    struct tms computeTime;
-    coach->startTimes[0] = (double)times(&computeTime);
 
     // Child process:
     if(pid == 0) {
@@ -132,13 +134,13 @@ void caseOf1Sorter(coachData* coach) {
         }
     }
     
+    read(newfifo->fd, &(coach->durations[0]), sizeof(double));
+
     // Wait for child process to finish:
     int status;
     wait(&status);
 
-    coach->endTimes[0] = (double)times(&computeTime);
-
-    printf("Coach %d: sorter 0: %lf\n", coach->coachID, (coach->endTimes[0]) - (coach->startTimes[0]));
+    printf("Coach %d: sorter 0: %lf\n", coach->coachID, coach->durations[0]);
     //Write records to text file in ASCII:
     writeRecords(coach->inputFile, records, coach->numOfRecords, coach->sortField);
 
@@ -233,6 +235,7 @@ void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* por
                     }
                 }
                 if(totalRecordsToWait[sorter] == recordsInSorter[sorter]) {
+                    read(fifos[sorter]->fd, &(coach->durations[sorter]), sizeof(double));
                     sortersToReceive--;
                 }
             }
@@ -248,13 +251,14 @@ void caseOfNSorters(coachData* coach, int numberOfSorters, int divider, int* por
         free(records[sorter-1]);
         recordsMergedCount += recordsInSorter[sorter];
     }
+    free(records[numberOfSorters-1]);
 
     // Write records to file:
     writeRecords(coach->inputFile, recordsMerged, recordsMergedCount, coach->sortField);
 
     // Print time and delete fifos:
     for(int i = 0; i < numberOfSorters; i++) {
-        printf("Coach %d: sorter %d: %lf\n", coach->coachID, i, (coach->endTimes[i]) - (coach->startTimes[i]));
+        printf("Coach %d: sorter %d: %lf\n", coach->coachID, i, coach->durations[i]);
         remove(fifos[i]->filename);
     }
 
