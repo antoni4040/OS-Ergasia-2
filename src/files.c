@@ -38,15 +38,15 @@ unsigned int getNumberOfRecords(char* filename) {
 /*
 Get records from input file and make an array.
 */
-Record** getRecords(char* inputFile, unsigned int start, unsigned int end) {
+Record** getRecords(Record* vault, char* inputFile, unsigned int start, unsigned int end) {
+    vault = malloc(sizeof(Record) * (end-start+1));
     Record** records = malloc(sizeof(Record*) * (end-start+1)); //+1 for the end record
     unsigned int recordsCount = end-start+1;
     FILE* openFile = fopen(inputFile, "rb");
     fseek(openFile, start*sizeof(Record), SEEK_SET);
     for(unsigned int i = 0; i < recordsCount; i++) {
-        Record* record = malloc(sizeof(Record));
-        fread(record, sizeof(Record), 1, openFile);
-        records[i] = record;
+        fread(&vault[i], sizeof(Record), 1, openFile);
+        records[i] = &vault[i];
     }
     fclose(openFile);
     return records;

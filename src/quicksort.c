@@ -71,7 +71,8 @@ int main(int argc, char** argv) {
     fifoFile = malloc(strlen(argv[5]) * sizeof(char) + 1);
     strcpy(fifoFile, argv[5]);
 
-    Record** records = getRecords(fileName, start, end);
+    Record* vault = NULL;
+    Record** records = getRecords(vault, fileName, start, end);
 
     quicksort(records, end-start+1, sortField);
 
@@ -81,16 +82,12 @@ int main(int argc, char** argv) {
         write(fifofd, records[i], sizeof(Record));
     }
 
-    // Free allocated memory:
-    for(int i = 0; i < end-start+1; i++) {
-        free(records[i]);
-    }
-
-     // Pass duration of sorter:
+    // Pass duration of sorter:
     double endTime = (double)times(&calculateTime);
     double duration = (endTime - startTime) / ticspersec;
     write(fifofd, &duration, sizeof(double));
 
+    free(vault);
     free(records);
     free(fileName);
     free(fifoFile);

@@ -77,7 +77,8 @@ int main(int argc, char** argv) {
     strcpy(fifoFile, argv[5]);
     
     recordHeap* newHeap = malloc(sizeof(recordHeap));
-    newHeap->records = getRecords(fileName, start, end);
+    Record* vault = NULL;
+    newHeap->records = getRecords(vault, fileName, start, end);
     newHeap->length = end - start + 1;
     newHeap->size = newHeap->length;
     newHeap->sortField = sortField;
@@ -90,11 +91,6 @@ int main(int argc, char** argv) {
         write(fifofd, newHeap->records[i], sizeof(Record));
     }
 
-    // Free allocated memory:
-    for(int i = 0; i < newHeap->length; i++) {
-        free(newHeap->records[i]);
-    }
-
     // Pass duration of sorter:
     double endTime = (double)times(&calculateTime);
     double duration = (endTime - startTime) / ticspersec;
@@ -103,6 +99,7 @@ int main(int argc, char** argv) {
     // Send signal to coach:
     kill(getppid(), SIGUSR2);
 
+    free(vault);
     free(newHeap->records);
     free(newHeap);
     free(fileName);
