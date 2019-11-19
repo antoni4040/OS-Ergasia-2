@@ -82,6 +82,8 @@ int main(int argc, char** argv) {
     newHeap->size = newHeap->length;
     newHeap->sortField = sortField;
 
+    heapsort(newHeap);
+
     int fifofd = open(fifoFile, O_WRONLY);
 
     for(int i = 0; i < newHeap->length; i++) {

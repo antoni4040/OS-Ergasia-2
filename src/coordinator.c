@@ -40,6 +40,7 @@ int main(int argc, char** argv) {
             if(field == -1) continue;
 
             fields[coachesToMake] = field;
+
             if (*checkIsNumber != '\0') {  
                 printf("Coordinator: No field given for coach %d, gonna use the first field...\n", coachesToMake + 1);
                 field = 1;
@@ -84,7 +85,7 @@ int main(int argc, char** argv) {
             strcpy(sortAlgorithmStr, "H");
         else
             strcpy(sortAlgorithmStr, "Q");
-        char sortFieldStr[2];
+        char sortFieldStr[3];
         sprintf(sortFieldStr, "%d", currectCoach.field);
 
         // printf("%s %s %s %s %d\n", inputFile, numOfRecordsStr, coachIDStr, sortAlgorithmStr, currectCoach.field);
